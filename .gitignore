@@ -1,0 +1,13 @@
+build/pong/Analysis-00.toc
+build/pong/base_library.zip
+build/pong/localpycs/pyimod02_importers.pyc
+*.pyc
+build/pong/EXE-00.toc
+build/pong/PKG-00.toc
+*.pkg
+*.exe
+build/pong/PYZ-00.pyz
+build/pong/PYZ-00.pyz
+build/pong/warn-pong.txt
+build/pong/PYZ-00.toc
+pong.spec
