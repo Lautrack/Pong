@@ -2,16 +2,16 @@
 # El juego incluye un marcador, sonidos de rebote y puntuación, y aumenta la velocidad de la pelota con cada rebote.
 # El juego termina cuando uno de los jugadores llega a 3 puntos.
 import turtle
-import os
 import random
 import tkinter as tk
 import winsound
+import time
 wn = turtle.Screen()
 game_over = False
 game_running = True
 
 # Configuración de la ventana
-wn.title("Pong por Laur")
+wn.title("Pong por Lau")
 wn.bgcolor("black")
 wn.setup(width=800, height=600)
 wn.tracer(0)
@@ -52,11 +52,11 @@ ball.shape("square")
 ball.color("white")
 ball.penup()
 ball.goto(0, 0)
-start_dx = 0.75  
-start_dy = -0.75
+start_dx = 1.5  
+start_dy = -1.5
 ball.dx = start_dx
 ball.dy = start_dy
-speed_increment = 1.1
+speed_increment = 1.25
 max_speed = 5
 
 # Funciones
@@ -79,6 +79,8 @@ def paddle_b_down():
     
 # Función para mostrar la ventana de fin del juego , que jugador a ganado y si quiere volver a jugar, reiniciando la partida
 def ventana_fin(ganador):
+    global game_running
+    game_running = False
     ventana = tk.Toplevel(wn._root)
     ventana.title("Fin del juego")
     ventana.geometry("250x120")
@@ -89,7 +91,7 @@ def ventana_fin(ganador):
         ventana.destroy()
     boton_reiniciar = tk.Button(ventana, text="Sí", command=reiniciar)
     boton_reiniciar.pack(side="left", padx=20)
-    boton_salir = tk.Button(ventana, text="No", command=wn.bye)
+    boton_salir = tk.Button(ventana, text="No", command=cerrar_juego)
     boton_salir.pack(side="right", padx=20)
 # Función para verificar si el juego ha terminado
 def verificar_fin():
@@ -118,9 +120,12 @@ def reiniciar_juego():
     
 def game_loop():
     global game_running
-
     if not game_running:
         return
+def cerrar_juego():
+    global game_running
+    game_running = False
+    wn.bye()
     
 #Teclado
 wn.listen()
@@ -128,106 +133,121 @@ wn.onkeypress(paddle_a_up, "w")
 wn.onkeypress(paddle_a_down, "s")
 
 #computadora controla la paleta b
-ai_speed = 2
+ai_speed = 4
+
 # Bucle principal del juego
 while True:
+    time.sleep(0.01)
     try:
         wn.update()
-    except:
-        break
-    if not game_running:
-       continue
-    # Mover la pelota
-    ball.setx(ball.xcor() + ball.dx)
-    ball.sety(ball.ycor() + ball.dy)
-    # Hacer menos capaze a la computadora de seguir la pelota perfectamente
-    if ball.dx > 0:  # only move when ball comes toward the computer
-        target = ball.ycor() + random.randint(-25, 25)
-
-    if paddle_b.ycor() < target:
-        paddle_b.sety(paddle_b.ycor() + ai_speed)
-
-    elif paddle_b.ycor() > target:
-        paddle_b.sety(paddle_b.ycor() - ai_speed)
+        if not game_running:
+            continue
+        
+        # Mover la pelota
+        ball.setx(ball.xcor() + ball.dx)
+        ball.sety(ball.ycor() + ball.dy)
+        
+        # Hacer menos capaze a la computadora de seguir la pelota perfectamente        
+        if ball.dx > 0:
+            target = ball.ycor() + random.randint(-25, 25)
+            if paddle_b.ycor() < target:
+                paddle_b.sety(paddle_b.ycor() + ai_speed)
+            elif paddle_b.ycor() > target:
+                paddle_b.sety(paddle_b.ycor() - ai_speed)      
+                   
+        # Colisiones con los bordes
+        if ball.ycor() > 290:
+            ball.sety(290)
+            ball.dy *= -1
+            winsound.PlaySound("sounds/bounce.wav", winsound.SND_ASYNC)
+        if ball.ycor() < -290:
+            ball.sety(-290)
+            ball.dy *= -1
+            winsound.PlaySound("sounds/bounce.wav", winsound.SND_ASYNC)
             
-    # Colisiones con los bordes
-    if ball.ycor() > 290:
-        ball.sety(290)
-        ball.dy *= -1
-        winsound.PlaySound("sounds/bounce.wav", winsound.SND_ASYNC)
-    if ball.ycor() < -290:
-        ball.sety(-290)
-        ball.dy *= -1
-        winsound.PlaySound("sounds/bounce.wav", winsound.SND_ASYNC)
-    if ball.xcor() > 390:
-        ball.goto(0, 0)
-        ball.dx *= -1
-        score_a += 1
-        winsound.PlaySound("sounds/score.wav", winsound.SND_ASYNC)
-    if ball.xcor() < -390:
-        ball.goto(0, 0)
-        ball.dx *= -1
-        score_b += 1
-        winsound.PlaySound("sounds/score.wav", winsound.SND_ASYNC)
-    # Colisiones con las paletas
-    if (ball.xcor() > 340 and ball.xcor() < 350) and (ball.ycor() < paddle_b.ycor() + 50 and ball.ycor() > paddle_b.ycor() - 50):
-        ball.setx(340)
-        ball.dx *= -speed_increment
-        ball.dy *= speed_increment
-        if abs(ball.dx) > max_speed:
-            ball.dx = max_speed if ball.dx > 0 else -max_speed   
-        winsound.PlaySound("sounds/bounce.wav", winsound.SND_ASYNC)
-    if (ball.xcor() < -340 and ball.xcor() > -350) and (ball.ycor() < paddle_a.ycor() + 50 and ball.ycor() > paddle_a.ycor() - 50):
-        ball.setx(-340)
-        ball.dx *= -speed_increment
-        ball.dy *= speed_increment
-        if abs(ball.dx) > max_speed:
-            ball.dx = max_speed if ball.dx > 0 else -max_speed
-        winsound.PlaySound("sounds/bounce.wav", winsound.SND_ASYNC)               
-    update_score()
-    # Resetear la velocidad de la pelota después de cada punto
-    if ball.xcor() == 0 and ball.ycor() == 0:
-        ball.dx = start_dx if random.choice([True, False]) else -start_dx
-        ball.dy = start_dy if random.choice([True, False]) else -start_dy
-    # Resetear la posición de las paletas después de cada punto
-    if ball.xcor() == 0 and ball.ycor() == 0:
-        paddle_a.goto(-350, 0)
-        paddle_b.goto(350, 0)
-    # Randomizar la dirección de la pelota después de cada punto
-    if ball.xcor() == 0 and ball.ycor() == 0:
-        ball.dx = start_dx if random.choice([True, False]) else -start_dx
-        ball.dy = start_dy if random.choice([True, False]) else -start_dy
-    # Dar un pequeño descanso después de cada punto
-    if ball.xcor() == 0 and ball.ycor() == 0:
-        wn.update()
-        turtle.time.sleep(1)
-    # Limitar el movimiento de las paletas
-    if paddle_a.ycor() > 250:
-        paddle_a.sety(250)
-    if paddle_a.ycor() < -250:
-        paddle_a.sety(-250)
-    if paddle_b.ycor() > 250:
-        paddle_b.sety(250)
-    if paddle_b.ycor() < -250:
-        paddle_b.sety(-250)
-    # Limitar la velocidad de la pelota
-    if ball.dx > max_speed:
-        ball.dx = max_speed
-    if ball.dx < -max_speed:
-        ball.dx = -max_speed
-    if ball.dy > max_speed:
-        ball.dy = max_speed
-    if ball.dy < -max_speed:
-        ball.dy = -max_speed
-    # detener el juego cuando uno de los jugadores llega a 3 puntos y mostrar la ventana de fin del juego
-    if not game_over and (score_a >= 3 or score_b >= 3):
-        game_running = False
-        game_over = True
-        verificar_fin()
+            # Jugador A anota
+        if ball.xcor() > 390:
+            score_a += 1
+            winsound.PlaySound("sounds/score.wav", winsound.SND_ASYNC)
+            ball.goto(0, 0)
+            paddle_a.goto(-350, 0)
+            paddle_b.goto(350, 0)
+            ball.dx = start_dx * random.choice([-1, 1])
+            ball.dy = start_dy * random.choice([-1, 1])
+            update_score()
+            wn.update()
+            time.sleep(1)
+
+        # Jugador B anota
+        if ball.xcor() < -390:
+            score_b += 1
+            winsound.PlaySound("sounds/score.wav", winsound.SND_ASYNC)
+
+            ball.goto(0, 0)
+            paddle_a.goto(-350, 0)
+            paddle_b.goto(350, 0)
+
+            ball.dx = start_dx * random.choice([-1, 1])
+            ball.dy = start_dy * random.choice([-1, 1])
+
+            update_score()
+            wn.update()
+            time.sleep(1)
+        # Colisiones con las paletas
+        # Colisión con paleta B
+        if (340 < ball.xcor() < 350) and (paddle_b.ycor()-50 < ball.ycor() < paddle_b.ycor()+50):
+            ball.setx(340)
+            ball.dx *= -speed_increment
+            ball.dy *= speed_increment
+            if abs(ball.dx) > max_speed:
+                ball.dx = max_speed if ball.dx > 0 else -max_speed
+            if abs(ball.dy) > max_speed:
+                ball.dy = max_speed if ball.dy > 0 else -max_speed
+            winsound.PlaySound("sounds/bounce.wav", winsound.SND_ASYNC)
+
+        # Colisión con paleta A
+        if (-350 < ball.xcor() < -340) and (paddle_a.ycor()-50 < ball.ycor() < paddle_a.ycor()+50):
+            ball.setx(-340)
+            ball.dx *= -speed_increment
+            ball.dy *= speed_increment
+            if abs(ball.dx) > max_speed:
+                ball.dx = max_speed if ball.dx > 0 else -max_speed
+            if abs(ball.dy) > max_speed:
+                ball.dy = max_speed if ball.dy > 0 else -max_speed
+            winsound.PlaySound("sounds/bounce.wav", winsound.SND_ASYNC)              
+        update_score()
         
+        # Limitar el movimiento de las paletas
+        if paddle_a.ycor() > 250:
+            paddle_a.sety(250)
+        if paddle_a.ycor() < -250:
+            paddle_a.sety(-250)
+        if paddle_b.ycor() > 250:
+            paddle_b.sety(250)
+        if paddle_b.ycor() < -250:
+            paddle_b.sety(-250)
+            
+        # Limitar la velocidad de la pelota
+        if ball.dx > max_speed:
+            ball.dx = max_speed
+        if ball.dx < -max_speed:
+            ball.dx = -max_speed
+        if ball.dy > max_speed:
+            ball.dy = max_speed
+        if ball.dy < -max_speed:
+            ball.dy = -max_speed
+            
+        # detener el juego cuando uno de los jugadores llega a 3 puntos y mostrar la ventana de fin del juego
+        if not game_over and (score_a >= 3 or score_b >= 3):
+            game_running = False
+            game_over = True
+            verificar_fin()
+    except (turtle.Terminator, tk.TclError):
+        break
 
 
-    
-        
-        
-    
+
+
+            
+            
+
