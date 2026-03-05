@@ -11,7 +11,7 @@ game_over = False
 game_running = True
 
 # Configuración de la ventana
-wn.title("Pong por @Cesar")
+wn.title("Pong por Laur")
 wn.bgcolor("black")
 wn.setup(width=800, height=600)
 wn.tracer(0)
@@ -131,7 +131,10 @@ wn.onkeypress(paddle_a_down, "s")
 ai_speed = 2
 # Bucle principal del juego
 while True:
-    wn.update()
+    try:
+        wn.update()
+    except:
+        break
     if not game_running:
        continue
     # Mover la pelota
