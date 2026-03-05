@@ -16,6 +16,20 @@ wn.bgcolor("black")
 wn.setup(width=800, height=600)
 wn.tracer(0)
 
+# Linea divisora
+center_line = turtle.Turtle()
+center_line.color("white")
+center_line.penup()
+center_line.goto(0, -300)
+center_line.setheading(90)
+center_line.pensize(3)
+
+for i in range(30):
+    center_line.pendown()
+    center_line.forward(10)
+    center_line.penup()
+    center_line.forward(10)
+
 # Marcador
 score_a = 0
 score_b = 0
@@ -59,6 +73,19 @@ ball.dy = start_dy
 speed_increment = 1.25
 max_speed = 5
 
+# Pantalla de inicio
+start_screen = turtle.Turtle()
+start_screen.color("white")
+start_screen.hideturtle()
+start_screen.penup()
+start_screen.goto(0, 0)
+start_screen.write(
+    "PONG\n\nPresiona ESPACIO para empezar\nW / S para mover\nPrimero a 3 gana",
+    align="center",
+    font=("Courier", 20, "normal")
+)
+game_running = False
+
 # Funciones
 def paddle_a_up():
     y = paddle_a.ycor()
@@ -76,6 +103,12 @@ def paddle_b_down():
     y = paddle_b.ycor()
     y -= 20
     paddle_b.sety(y)
+    
+# Funcion para iniciar el juego
+def start_game():
+    global game_running
+    start_screen.clear()
+    game_running = True
     
 # Función para mostrar la ventana de fin del juego , que jugador a ganado y si quiere volver a jugar, reiniciando la partida
 def ventana_fin(ganador):
@@ -117,20 +150,23 @@ def reiniciar_juego():
     game_running = True
     update_score()
     
-    
 def game_loop():
     global game_running
     if not game_running:
         return
+    
 def cerrar_juego():
     global game_running
     game_running = False
     wn.bye()
-    
+
 #Teclado
 wn.listen()
 wn.onkeypress(paddle_a_up, "w")
 wn.onkeypress(paddle_a_down, "s")
+wn.onkeypress(start_game, "space")
+
+
 
 #computadora controla la paleta b
 ai_speed = 4
